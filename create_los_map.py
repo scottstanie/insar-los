@@ -66,16 +66,18 @@ if __name__ == "__main__":
             orbit_file = glob.glob(os.path.join(orbit_dir, "*.EOF"))[0]
     else:
         orbit_file = args.orbit_file
-        
+
     if not args.sentinel_file:
         parsed_sentinel = list(eof.download.find_unique_safes("."))[0]
     else:
         parsed_sentinel = apertools.parsers.Sentinel(args.sentinel_file)
-        
+
     start_time = parsed_sentinel.start_time
     min_time = start_time - timedelta(minutes=30)
     max_time = start_time + timedelta(minutes=30)
-    orbit_tuples = eof.parsing.parse_orbit(orbit_file, min_time=min_time, max_time=max_time)
+    orbit_tuples = eof.parsing.parse_orbit(
+        orbit_file, min_time=min_time, max_time=max_time
+    )
 
     orbtiming_name = "out.orbtiming"
     eof.parsing.write_orbinfo(orbit_tuples, outname=orbtiming_name)
