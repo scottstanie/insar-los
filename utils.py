@@ -1,5 +1,34 @@
 #!/usr/bin/env python
 import os
+from datetime import timedelta
+import glob
+import eof
+import apertools.parsers
+
+
+def create_orbtiming_file(args):
+    if not args.orbit_file:
+        if not args.sentinel_file:
+            print("No Sentinel-1 file specifiy. Searching current directory.")
+            eof.download.main(search_path=".", save_dir=args.orbit_save_dir)
+
+        orbit_file = glob.glob(os.path.join(args.orbit_save_dir, "*.EOF"))[0]
+    else:
+        orbit_file = args.orbit_file
+
+    if not args.sentinel_file:
+        parsed_sentinel = list(eof.download.find_unique_safes("."))[0]
+    else:
+        parsed_sentinel = apertools.parsers.Sentinel(args.sentinel_file)
+
+    start_time = parsed_sentinel.start_time
+    min_time = start_time - timedelta(minutes=30)
+    max_time = start_time + timedelta(minutes=30)
+    orbit_tuples = eof.parsing.parse_orbit(
+        orbit_file, min_time=min_time, max_time=max_time
+    )
+
+    eof.parsing.write_orbinfo(orbit_tuples, outname=args.orbtiming_file)
 
 
 def save_as_vrt(filename, dem_filename, out_dtype="float32", outfile=None):

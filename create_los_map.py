@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import argparse
-from datetime import timedelta
-import glob
 import os
 import sys
 import subprocess
-import eof
-import apertools.parsers
+
 import utils
 
 
@@ -61,31 +58,6 @@ def _print_and_run(cmd):
 CUR_PATH = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 
-def create_orbtiming_file(args):
-    if not args.orbit_file:
-        if not args.sentinel_file:
-            print("No Sentinel-1 file specifiy. Searching current directory.")
-            eof.download.main(search_path=".", save_dir=args.orbit_save_dir)
-
-        orbit_file = glob.glob(os.path.join(args.orbit_save_dir, "*.EOF"))[0]
-    else:
-        orbit_file = args.orbit_file
-
-    if not args.sentinel_file:
-        parsed_sentinel = list(eof.download.find_unique_safes("."))[0]
-    else:
-        parsed_sentinel = apertools.parsers.Sentinel(args.sentinel_file)
-
-    start_time = parsed_sentinel.start_time
-    min_time = start_time - timedelta(minutes=30)
-    max_time = start_time + timedelta(minutes=30)
-    orbit_tuples = eof.parsing.parse_orbit(
-        orbit_file, min_time=min_time, max_time=max_time
-    )
-
-    eof.parsing.write_orbinfo(orbit_tuples, outname=args.orbtiming_file)
-
-
 if __name__ == "__main__":
     args = get_cli_args()
     if os.path.exists(args.outfile):
@@ -94,7 +66,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(args.orbtiming_file):
         print(f"{args.orbtiming_file} does not exist. Creating.")
-        create_orbtiming_file(args)
+        utils.create_orbtiming_file(args)
 
     exe_file = f"{CUR_PATH}/build/create_los_map"
     cmd = f"{exe_file} {args.orbtiming_file} {args.dem}"
