@@ -20,6 +20,10 @@ const double deg2rad = pi / 180.;
 const double a = 6378137.0;
 const double e2 = 0.0066943799901499996;
 
+const char* OUT_EAST{"los_east.bin"};
+const char* OUT_NORTH{"los_north.bin"};
+const char* OUT_UP{"los_up.bin"};
+
 // Fortran function declarations:
 /* 
  * xyz_ground is 3-vector of point on the ground surface
@@ -111,15 +115,12 @@ void ecef_to_enu(const double *xyz, const double latd0, const double lond0, doub
   outEnu[2] = cos_lat * cos_lon * x + cos_lat * sin_lon * y + sin_lat * z;
 }
 
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " orbtiming_filename dem_filename" << std::endl;
-    return 1;
-  }
 
+/* Main function to create the map given an orbtiming_filename and dem_filename
+ * Writes output to files OUT_EAST, OUT_NORTH, and OUT_UP
+ */
+void create_map(std::string orbtiming_filename, std::string dem_filename) {
   // Read and store orbit state information
-  std::string orbtiming_filename = argv[1];
-  std::string dem_filename = argv[2];
   std::cout << "reading " << orbtiming_filename << std::endl;
 
   std::vector<double> tvec;
@@ -142,7 +143,7 @@ int main(int argc, char *argv[]) {
   poDemDataset = static_cast<GDALDataset *>(GDALOpen(dem_filename.c_str(), GA_ReadOnly));
   if (poDemDataset == nullptr) {
     std::cerr << "Failed to open DEM dataset " << dem_filename << std::endl;
-    return 1;
+    return;
   }
 
   int xSize = poDemDataset->GetRasterXSize();
@@ -150,7 +151,7 @@ int main(int argc, char *argv[]) {
   double adfGeoTransform[6];
   if (poDemDataset->GetGeoTransform(adfGeoTransform) != CE_None) {
     std::cerr << "Failed to get Geo Transform" << std::endl;
-    return 1;
+    return;
   }
   double xStart = adfGeoTransform[0];
   double xStep = adfGeoTransform[1];
@@ -162,7 +163,7 @@ int main(int argc, char *argv[]) {
   CPLErr readErr = poBand->RasterIO(GF_Read, 0, 0, xSize, ySize, heights, xSize, ySize, GDT_Int16, 0, 0);
   if (readErr != 0) {
     std::cerr << "Failed to read in dataset 1 of " << dem_filename << std::endl;
-    return 1;
+    return;
   }
   
   // Allocated binary arrays of output
@@ -207,13 +208,13 @@ int main(int argc, char *argv[]) {
   } // end LLH loop
 
   // GDAL translating occurs in python wrapper
-  FILE *fout = fopen("los_east.bin", "wb");
+  FILE *fout = fopen(OUT_EAST, "wb");
   fwrite(los_east, sizeof(float), xSize * ySize, fout);
   fclose(fout);
-  fout = fopen("los_north.bin", "wb");
+  fout = fopen(OUT_EAST, "wb");
   fwrite(los_north, sizeof(float), xSize * ySize, fout);
   fclose(fout);
-  fout = fopen("los_up.bin", "wb");
+  fout = fopen(OUT_EAST, "wb");
   fwrite(los_up, sizeof(float), xSize * ySize, fout);
   fclose(fout);
 
@@ -222,5 +223,15 @@ int main(int argc, char *argv[]) {
   delete[] los_north;
   delete[] los_up;
 
+}
+
+int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " orbtiming_filename dem_filename" << std::endl;
+    return 1;
+  }
+  std::string orbtiming_filename = argv[1];
+  std::string dem_filename = argv[2];
+  create_map(orbtiming_filename, dem_filename);
   return 0;
 }

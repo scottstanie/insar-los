@@ -5,23 +5,31 @@ import os
 import sys
 import subprocess
 
-# from orbitrangetime_lib import orbitrangetime
-# from intp_orbit_lib import intp_orbit
-# from llh2xyz import llh2xyz
-
 
 def get_cli_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--outfile",
-                        default="los_enu.tif",
-                        help="Name of final, merged file with 3 bands "
-                        "for east, north, and up LOS vectors "
-                        "(default = %(default)s)")
-    parser.add_argument("--orbit-file",
-                        required=False,
-                        help="Name of .orbtiming file for some acquisition")
-    parser.add_argument("--dem", default="elevation.dem", 
-                        help="Filepath of target DEM (default = %(default)s)")
+    parser.add_argument(
+        "--outfile",
+        default="los_enu.tif",
+        help="Name of final, merged file with 3 bands "
+        "for east, north, and up LOS vectors "
+        "(default = %(default)s)",
+    )
+    parser.add_argument(
+        "--sentinel-file",
+        required=False,
+        help="Name of .SAFE or .zip sentinel file to find LOS vector for",
+    )
+    parser.add_argument(
+        "--orbit-file",
+        required=False,
+        help="Name of .orbtiming file for some acquisition",
+    )
+    parser.add_argument(
+        "--dem",
+        default="elevation.dem",
+        help="Filepath of target DEM (default = %(default)s)",
+    )
     return parser.parse_args()
 
 
@@ -34,7 +42,6 @@ def _print_and_run(cmd):
 CUR_PATH = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 if __name__ == "__main__":
-    repo_home = os.path.expanduser("~/repos/sentinel_l0")
     args = get_cli_args()
     if os.path.exists(args.outfile):
         print(f"{args.outfile} already exists. Exiting.")
@@ -45,8 +52,9 @@ if __name__ == "__main__":
     else:
         orbit_file = args.orbit_file
 
+    exe_file = f"{CUR_PATH}/build/create_los_map"
+    cmd = f"{exe_file} {orbit_file} {args.dem}"
 
-    cmd = f"{CUR_PATH}/create_los_map {orbit_file} {args.dem}"
     _print_and_run(cmd)
 
     print("Saving .vrt files for new binary LOS files")
