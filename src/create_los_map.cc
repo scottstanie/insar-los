@@ -209,10 +209,10 @@ void create_map(std::string orbtiming_filename, std::string dem_filename) {
   FILE *fout = fopen(OUT_EAST, "wb");
   fwrite(los_east, sizeof(float), xSize * ySize, fout);
   fclose(fout);
-  fout = fopen(OUT_EAST, "wb");
+  fout = fopen(OUT_NORTH, "wb");
   fwrite(los_north, sizeof(float), xSize * ySize, fout);
   fclose(fout);
-  fout = fopen(OUT_EAST, "wb");
+  fout = fopen(OUT_UP, "wb");
   fwrite(los_up, sizeof(float), xSize * ySize, fout);
   fclose(fout);
 

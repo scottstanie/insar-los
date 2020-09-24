@@ -1,84 +1,6 @@
 #!/usr/bin/env python
 import sys
 import os
-from datetime import datetime
-
-
-def readxmlparam(xmllines, param):
-    for line in xmllines:
-        if param in line:
-            i = line.find(param)
-            str1 = line[i:]
-            istart = str1.find('>') + 1
-            istop = str1.find('<')
-            value = str1[istart:istop]
-            # print line[i:],'\n'
-            # print istart, istop, '\n'
-            return value
-
-
-def timeinseconds(timestring):
-    #    dt = datetime.strptime(timestring, 'TAI=%Y-%m-%dT%H:%M:%S.%f')
-    dt = datetime.strptime(timestring, 'UTC=%Y-%m-%dT%H:%M:%S.%f')
-    #    dt = datetime.strptime(timestring, 'UT1=%Y-%m-%dT%H:%M:%S.%f')
-    secs = dt.hour * 3600 + dt.minute * 60 + dt.second + dt.microsecond / 1000000.0
-    return secs
-
-
-def parse_orbit():
-    #  create an orbtiming file for all bursts (1-11) using a precise orbit file
-    if len(sys.argv) < 2:
-        print('Usage: precise_orbit_burst.py preciseorbitfile')
-        sys.exit(1)
-
-    orbitfile = sys.argv[1]
-
-    # read the precise file
-    xmlfile = open(orbitfile, 'r')
-    xmllines = xmlfile.readlines()
-    xmlfile.close()
-
-    #  save orbit and timing information
-
-    #  extract each state vector
-    start = []
-    stop = []
-    for i in range(len(xmllines)):
-        if '<OSV>' in xmllines[i]:
-            start.append(i)
-
-        if '</OSV>' in xmllines[i]:
-            stop.append(i)
-
-    time = []
-    x = []
-    y = []
-    z = []
-    vx = []
-    vy = []
-    vz = []
-    for i in range(len(start)):
-        statelines = xmllines[start[i]:stop[i]]
-        time.append(readxmlparam(statelines, 'UTC'))
-        x.append(readxmlparam(statelines, 'X unit'))
-        y.append(readxmlparam(statelines, 'Y unit'))
-        z.append(readxmlparam(statelines, 'Z unit'))
-        vx.append(readxmlparam(statelines, 'VX unit'))
-        vy.append(readxmlparam(statelines, 'VY unit'))
-        vz.append(readxmlparam(statelines, 'VZ unit'))
-
-    orbinfo = open('orbtiming.full', 'w')
-    orbinfo.write('0 \n')
-    orbinfo.write('0 \n')
-    orbinfo.write('0 \n')
-    orbinfo.write(str(len(start)) + '\n')
-    for i in range(len(start)):
-        orbinfo.write(
-            str(timeinseconds(time[i])) + ' ' + str(x[i]) + ' ' + str(y[i]) + ' ' + str(z[i]) +
-            ' ' + str(vx[i]) + ' ' + str(vy[i]) + ' ' + str(vz[i]) + ' 0.0 0.0 0.0')
-        orbinfo.write('\n')
-
-    orbinfo.close()
 
 
 def save_as_vrt(filename, dem_filename, out_dtype="float32", outfile=None):
@@ -104,6 +26,7 @@ def save_as_vrt(filename, dem_filename, out_dtype="float32", outfile=None):
     """
     import gdal
     import numpy as np
+
     outfile = outfile or (filename + ".vrt")
     if outfile is None:
         raise ValueError("Need outfile or filename to save")
@@ -133,10 +56,10 @@ def save_as_vrt(filename, dem_filename, out_dtype="float32", outfile=None):
 
     # Quick check that sizes and dtypes of files make sense
     total_bytes = os.path.getsize(filename)
-    assert rows == int(
-        total_bytes / bytes_per_pix / cols /
-        num_bands), (f"rows = total_bytes / bytes_per_pix / cols / num_bands , but "
-                     f"{rows} != {total_bytes} / {bytes_per_pix} / {cols} / {num_bands} ")
+    assert rows == int(total_bytes / bytes_per_pix / cols / num_bands), (
+        f"rows = total_bytes / bytes_per_pix / cols / num_bands , but "
+        f"{rows} != {total_bytes} / {bytes_per_pix} / {cols} / {num_bands} "
+    )
 
     # Create ouput VRT
     vrt_driver = gdal.GetDriverByName("VRT")
@@ -145,18 +68,18 @@ def save_as_vrt(filename, dem_filename, out_dtype="float32", outfile=None):
     out_raster.SetGeoTransform(geotrans)
     out_raster.SetProjection(srs.ExportToWkt())
     options = [
-        'subClass=VRTRawRasterBand',
+        "subClass=VRTRawRasterBand",
         # split, since relative to file, so remove directory name
-        'SourceFilename={}'.format(os.path.split(filename)[1]),
-        'relativeToVRT=1',  # location of file: make it relative to the VRT file
-        'ImageOffset={}'.format(image_offset),
-        'PixelOffset={}'.format(pixel_offset),
-        'LineOffset={}'.format(line_offset),
+        "SourceFilename={}".format(os.path.split(filename)[1]),
+        "relativeToVRT=1",  # location of file: make it relative to the VRT file
+        "ImageOffset={}".format(image_offset),
+        "PixelOffset={}".format(pixel_offset),
+        "LineOffset={}".format(line_offset),
         # 'ByteOrder=LSB'
     ]
-    print(options)
+    # print(options)
     gdal_dtype = numpy_to_gdal_type(out_dtype)
-    print("gdal dtype", gdal_dtype, out_dtype)
+    # print("gdal dtype", gdal_dtype, out_dtype)
     out_raster.AddBand(gdal_dtype, options)
     out_raster = None  # Force write
 
@@ -165,5 +88,6 @@ def save_as_vrt(filename, dem_filename, out_dtype="float32", outfile=None):
 
 def numpy_to_gdal_type(np_dtype):
     from osgeo import gdal_array
+
     # Wrap in np.dtype in case string is passed
     return gdal_array.NumericTypeCodeToGDALTypeCode(np_dtype)
