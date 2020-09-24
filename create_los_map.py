@@ -41,6 +41,14 @@ def get_cli_args():
         help="Directory to save .EOF file into, or one that already contains "
         " .EOF files (default=%(default)s) ",
     )
+    parser.add_argument(
+        "--orbtiming-file",
+        required=False,
+        default="out.orbtiming",
+        help="File contining parsed OSVs in format `t x y z vx vy vz ax ay az` "
+        " , will be created if none exists. (default=%(default)s) ",
+    )
+
     return parser.parse_args()
 
 
@@ -52,18 +60,14 @@ def _print_and_run(cmd):
 # get the path of the script directory
 CUR_PATH = os.path.dirname(os.path.abspath(sys.argv[0]))
 
-if __name__ == "__main__":
-    args = get_cli_args()
-    if os.path.exists(args.outfile):
-        print(f"{args.outfile} already exists. Exiting.")
-        sys.exit(0)
 
+def create_orbtiming_file(args):
     if not args.orbit_file:
         if not args.sentinel_file:
             print("No Sentinel-1 file specifiy. Searching current directory.")
-            orbit_dir = args.orbit_save_dir
-            eof.download.main(search_path=".", save_dir=orbit_dir)
-            orbit_file = glob.glob(os.path.join(orbit_dir, "*.EOF"))[0]
+            eof.download.main(search_path=".", save_dir=args.orbit_save_dir)
+
+        orbit_file = glob.glob(os.path.join(args.orbit_save_dir, "*.EOF"))[0]
     else:
         orbit_file = args.orbit_file
 
@@ -79,11 +83,21 @@ if __name__ == "__main__":
         orbit_file, min_time=min_time, max_time=max_time
     )
 
-    orbtiming_name = "out.orbtiming"
-    eof.parsing.write_orbinfo(orbit_tuples, outname=orbtiming_name)
+    eof.parsing.write_orbinfo(orbit_tuples, outname=args.orbtiming_file)
+
+
+if __name__ == "__main__":
+    args = get_cli_args()
+    if os.path.exists(args.outfile):
+        print(f"{args.outfile} already exists. Exiting.")
+        sys.exit(0)
+
+    if not os.path.exists(args.orbtiming_file):
+        print(f"{args.orbtiming_file} does not exist. Creating.")
+        create_orbtiming_file(args)
 
     exe_file = f"{CUR_PATH}/build/create_los_map"
-    cmd = f"{exe_file} {orbtiming_name} {args.dem}"
+    cmd = f"{exe_file} {args.orbtiming_file} {args.dem}"
 
     _print_and_run(cmd)
 
