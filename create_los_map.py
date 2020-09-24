@@ -4,6 +4,7 @@ import glob
 import os
 import sys
 import subprocess
+import utils
 
 
 def get_cli_args():
@@ -62,8 +63,7 @@ if __name__ == "__main__":
         # Create .vrt, copying the projection data from the .rsc file
         bin_name = f"los_{d}.bin"
         rsc_filename = f"{args.dem}.rsc"
-        cmd = f"aper save-vrt {bin_name} --rsc-file {rsc_filename} --dtype float32 --interleave BIP --num-bands 1"
-        _print_and_run(cmd)
+        utils.save_as_vrt(bin_name, args.dem)
 
         # # Also make a smaller copy
         # cmd = f"gdal_translate -outsize 10% 10%  {bin_name}.vrt los_{d}_looked.tif"

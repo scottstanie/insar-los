@@ -20,9 +20,9 @@ const double deg2rad = pi / 180.;
 const double a = 6378137.0;
 const double e2 = 0.0066943799901499996;
 
-const char* OUT_EAST{"los_east.bin"};
-const char* OUT_NORTH{"los_north.bin"};
-const char* OUT_UP{"los_up.bin"};
+const char *OUT_EAST{"los_east.bin"};
+const char *OUT_NORTH{"los_north.bin"};
+const char *OUT_UP{"los_up.bin"};
 
 // Fortran function declarations:
 /* 
@@ -38,7 +38,6 @@ extern "C" int intp_orbit_(double *thist, double *xhist, double *vhist, int *num
                            double *xyz_out, double *vel_out);
 // extern "C" void orbithermite_(double *xhist, double *vhist, double *thist, double *t_in,
 //                               double *x_out, double *v_out);
-
 
 /* Store the data from .orbtiming file containing satellite orbit state into tvec, xvec, vvec */
 void read_orbit_state(const std::string filename, std::vector<double> &tvec, std::vector<double> &xvec,
@@ -115,7 +114,6 @@ void ecef_to_enu(const double *xyz, const double latd0, const double lond0, doub
   outEnu[2] = cos_lat * cos_lon * x + cos_lat * sin_lon * y + sin_lat * z;
 }
 
-
 /* Main function to create the map given an orbtiming_filename and dem_filename
  * Writes output to files OUT_EAST, OUT_NORTH, and OUT_UP
  */
@@ -165,7 +163,7 @@ void create_map(std::string orbtiming_filename, std::string dem_filename) {
     std::cerr << "Failed to read in dataset 1 of " << dem_filename << std::endl;
     return;
   }
-  
+
   // Allocated binary arrays of output
   float *los_east = new float[ySize * xSize];
   float *los_north = new float[ySize * xSize];
@@ -205,7 +203,7 @@ void create_map(std::string orbtiming_filename, std::string dem_filename) {
       los_north[idx2d] = dr_enu[1];
       los_up[idx2d] = dr_enu[2];
     }
-  } // end LLH loop
+  }  // end LLH loop
 
   // GDAL translating occurs in python wrapper
   FILE *fout = fopen(OUT_EAST, "wb");
@@ -222,7 +220,6 @@ void create_map(std::string orbtiming_filename, std::string dem_filename) {
   delete[] los_east;
   delete[] los_north;
   delete[] los_up;
-
 }
 
 int main(int argc, char *argv[]) {
