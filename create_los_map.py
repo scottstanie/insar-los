@@ -58,7 +58,7 @@ def _print_and_run(cmd):
 CUR_PATH = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 
-if __name__ == "__main__":
+def main():
     args = get_cli_args()
     if os.path.exists(args.outfile):
         print(f"{args.outfile} already exists. Exiting.")
@@ -75,9 +75,8 @@ if __name__ == "__main__":
 
     print("Saving .vrt files for new binary LOS files")
     for d in ("east", "north", "up"):
-        # Create .vrt, copying the projection data from the .rsc file
+        # Create .vrt, copying the projection data from the DEM
         bin_name = f"los_{d}.bin"
-        rsc_filename = f"{args.dem}.rsc"
         utils.save_as_vrt(bin_name, args.dem)
 
         # # Also make a smaller copy
@@ -87,3 +86,7 @@ if __name__ == "__main__":
     _print_and_run(f"gdal_merge.py -o {args.outfile} -separate los_*.vrt")
     # Clean up the intermediate LOS map files
     _print_and_run("rm -f los_*.bin los_*.bin.vrt")
+
+
+if __name__ == "__main__":
+    main()
