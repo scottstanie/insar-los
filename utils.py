@@ -52,7 +52,7 @@ def save_as_vrt(filename, dem_filename, out_dtype="float32", outfile=None):
 
     Ref: https://gdal.org/drivers/raster/vrt.html#vrt-descriptions-for-raw-files
     """
-    import gdal
+    from osgeo import gdal
     import numpy as np
 
     outfile = outfile or (filename + ".vrt")
