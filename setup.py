@@ -1,7 +1,12 @@
 import setuptools
+from numpy.distutils.core import Extension
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+ext1 = Extension(name = 'orbitrangetime',
+                 sources = ['src/orbitrangetime.f90'])
+
 
 # TODO: possible to make compilation from makefile into here?
 setuptools.setup(
@@ -34,5 +39,6 @@ setuptools.setup(
             "create-los-map=create_los_map:main",
         ],
     },
+    ext_modules = [ext1]
     zip_safe=False,
 )
