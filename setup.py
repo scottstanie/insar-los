@@ -8,7 +8,7 @@ setuptools.setup(
     name="insar-los",
     version="0.1.0",
     author="Scott Staniewicz",
-    author_email="scott.stanie@utexas.com",
+    author_email="scott.stanie@gmail.com",
     description="Create line of sight maps for InSAR",
     long_description=long_description,
     long_description_content_type="text/markdown",
